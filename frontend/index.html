@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub Repository File Browser</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <style>
+        /* Custom animations for the GitHub File Browser */
+        
+        /* Fade in animation for main elements */
+        @keyframes fade-in {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Staggered fade-in animation for file cards */
+        @keyframes fade-in-stagger {
+            from {
+                opacity: 0;
+                transform: translateY(30px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        /* Gentle bounce animation for the download all button */
+        @keyframes bounce-gentle {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0);
+            }
+            40% {
+                transform: translateY(-5px);
+            }
+            60% {
+                transform: translateY(-3px);
+            }
+        }
+
+        /* Pulse animation with delays for background elements */
+        @keyframes pulse-delayed {
+            0%, 100% {
+                transform: scale(1);
+                opacity: 0.1;
+            }
+            50% {
+                transform: scale(1.05);
+                opacity: 0.15;
+            }
+        }
+
+        /* Custom CSS classes for animations */
+        .animate-fade-in {
+            animation: fade-in 0.8s ease-out forwards;
+        }
+
+        .animate-fade-in-delay {
+            animation: fade-in 0.8s ease-out 0.3s forwards;
+            opacity: 0;
+        }
+
+        .animate-fade-in-stagger {
+            animation: fade-in-stagger 0.6s ease-out forwards;
+            opacity: 0;
+        }
+
+        .animate-bounce-gentle {
+            animation: bounce-gentle 2s infinite;
+        }
+
+        /* Animation delay utilities */
+        .animation-delay-2000 {
+            animation-delay: 2s;
+        }
+
+        .animation-delay-4000 {
+            animation-delay: 4s;
+        }
+
+        /* Custom scrollbar styling for better UX */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(to bottom, #3b82f6, #6366f1);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(to bottom, #2563eb, #4f46e5);
+        }
+
+        /* Smooth focus styles for accessibility */
+        button:focus-visible {
+            outline: 2px solid #3b82f6;
+            outline-offset: 2px;
+        }
+
+        /* Mobile-specific optimizations */
+        @media (max-width: 640px) {
+            .animate-fade-in-stagger {
+                animation-delay: 0s !important;
+            }
+        }
+
+        /* Responsive typography improvements */
+        @media (max-width: 768px) {
+            /* Ensure text remains readable on mobile */
+            .bg-gradient-to-r.bg-clip-text {
+                -webkit-background-clip: text;
+                background-clip: text;
+            }
+        }
+
+        /* Loading skeleton shimmer effect */
+        @keyframes shimmer {
+            0% {
+                background-position: -468px 0;
+            }
+            100% {
+                background-position: 468px 0;
+            }
+        }
+
+        .animate-pulse-shimmer {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 400% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+
+        /* Glassmorphism effect for modern UI */
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        /* Custom gradient backgrounds */
+        .gradient-bg-1 {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .gradient-bg-2 {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .gradient-bg-3 {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        /* Hide elements initially for fade-in effect */
+        .fade-in-ready {
+            opacity: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+        
+        <!-- Header Section - Modern gradient background with glassmorphism effect -->
+        <div class="relative overflow-hidden bg-gradient-to-br from-indigo-600 via-purple-600 to-blue-700">
+            <!-- Animated background patterns -->
+            <div class="absolute inset-0 opacity-10">
+                <div class="absolute top-0 left-0 w-72 h-72 bg-white rounded-full mix-blend-multiply animate-pulse"></div>
+                <div class="absolute top-0 right-0 w-72 h-72 bg-yellow-200 rounded-full mix-blend-multiply animate-pulse animation-delay-2000"></div>
+                <div class="absolute bottom-0 left-1/2 w-72 h-72 bg-pink-200 rounded-full mix-blend-multiply animate-pulse animation-delay-4000"></div>
+            </div>
+            
+            <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
+                <div class="text-center">
+                    <!-- Main title with gradient text effect -->
+                    <h1 class="text-4xl md:text-6xl font-bold text-white mb-6 animate-fade-in">
+                        <span class="bg-gradient-to-r from-white to-blue-200 bg-clip-text text-transparent">
+                            GitHub Repository
+                        </span>
+                        <br />
+                        <span class="bg-gradient-to-r from-yellow-200 to-pink-200 bg-clip-text text-transparent">
+                            File Browser
+                        </span>
+                    </h1>
+                    
+                    <!-- Subtitle with typing effect -->
+                    <p class="text-xl md:text-2xl text-blue-100 mb-8 animate-fade-in-delay max-w-3xl mx-auto">
+                        Browse, preview, and download files from your GitHub repository with style
+                    </p>
+                    
+                    <!-- GitHub Repo URL Input -->
+                    <div class="mb-8 max-w-2xl mx-auto">
+                        <div class="flex flex-col sm:flex-row gap-4">
+                            <input 
+                                type="text" 
+                                id="repoUrl" 
+                                placeholder="Enter GitHub repo URL (e.g., https://github.com/user/repo)"
+                                class="flex-1 px-4 py-3 rounded-lg border-0 shadow-lg text-slate-700 placeholder-slate-400 focus:ring-2 focus:ring-yellow-400 focus:outline-none"
+                            />
+                            <button 
+                                id="loadRepoBtn"
+                                class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                Load Repository
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Download All Button - Prominent placement in header -->
+                    <button
+                        id="downloadAllBtn"
+                        disabled
+                        class="group relative inline-flex items-center px-8 py-4 bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-white font-semibold rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed animate-bounce-gentle"
+                    >
+                        <!-- Button glow effect -->
+                        <div class="absolute inset-0 rounded-full bg-gradient-to-r from-yellow-400 to-orange-500 opacity-75 group-hover:opacity-100 blur-lg transition-opacity duration-300"></div>
+                        
+                        <div class="relative flex items-center">
+                            <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                            <span id="downloadAllText">Download All Files</span>
+                        </div>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content Section -->
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            
+            <!-- Loading State - Modern skeleton cards -->
+            <div id="loadingState" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 hidden">
+                <!-- Loading skeleton cards will be generated by JavaScript -->
+            </div>
+
+            <!-- File Grid - Card-style layout with hover effects -->
+            <div id="fileGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 hidden">
+                <!-- File cards will be generated by JavaScript -->
+            </div>
+
+            <!-- Empty State - When no files found -->
+            <div id="emptyState" class="text-center py-12 hidden">
+                <div class="w-24 h-24 mx-auto mb-6 bg-slate-100 rounded-full flex items-center justify-center">
+                    <svg class="w-12 h-12 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                </div>
+                <h3 class="text-xl font-semibold text-slate-600 mb-2">No files found</h3>
+                <p class="text-slate-500">The repository appears to be empty or there was an issue loading the files.</p>
+            </div>
+
+            <!-- Initial State - Before loading any repo -->
+            <div id="initialState" class="text-center py-12">
+                <div class="w-32 h-32 mx-auto mb-6 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                    <svg class="w-16 h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2V7zm16 3h-6m-2 5L7 12l4-3m2 8l4-3" />
+                    </svg>
+                </div>
+                <h3 class="text-2xl font-bold text-slate-700 mb-4">Welcome to GitHub File Browser</h3>
+                <p class="text-lg text-slate-500 max-w-md mx-auto">
+                    Enter a GitHub repository URL above to browse and download files with our beautiful interface.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration - Replace with your backend URL
+        const BACKEND_URL = 'http://localhost:8000';
+        const API = `${BACKEND_URL}/api`;
+        
+        // State management
+        let currentRepoUrl = '';
+        let files = [];
+        let loading = false;
+        let downloadingAll = false;
+
+        // DOM elements
+        const repoUrlInput = document.getElementById('repoUrl');
+        const loadRepoBtn = document.getElementById('loadRepoBtn');
+        const downloadAllBtn = document.getElementById('downloadAllBtn');
+        const downloadAllText = document.getElementById('downloadAllText');
+        const loadingState = document.getElementById('loadingState');
+        const fileGrid = document.getElementById('fileGrid');
+        const emptyState = document.getElementById('emptyState');
+        const initialState = document.getElementById('initialState');
+
+        // Utility functions
+        function showToast(message, type = 'success') {
+            const bgColor = type === 'error' ? 'linear-gradient(to right, #ef4444, #dc2626)' : 
+                           type === 'loading' ? 'linear-gradient(to right, #3b82f6, #1d4ed8)' :
+                           'linear-gradient(to right, #10b981, #059669)';
+            
+            Toastify({
+                text: message,
+                duration: type === 'loading' ? -1 : 3000,
+                close: true,
+                gravity: "bottom",
+                position: "right",
+                style: {
+                    background: bgColor,
+                },
+            }).showToast();
+        }
+
+        function hideToast() {
+            // Hide all existing toasts
+            const toasts = document.querySelectorAll('.toastify');
+            toasts.forEach(toast => toast.remove());
+        }
+
+        // Set loading state
+        function setLoading(isLoading) {
+            loading = isLoading;
+            loadRepoBtn.disabled = isLoading;
+            loadRepoBtn.textContent = isLoading ? 'Loading...' : 'Load Repository';
+            
+            if (isLoading) {
+                showLoadingState();
+            }
+        }
+
+        // Show different states
+        function showInitialState() {
+            initialState.classList.remove('hidden');
+            loadingState.classList.add('hidden');
+            fileGrid.classList.add('hidden');
+            emptyState.classList.add('hidden');
+        }
+
+        function showLoadingState() {
+            initialState.classList.add('hidden');
+            emptyState.classList.add('hidden');
+            fileGrid.classList.add('hidden');
+            loadingState.classList.remove('hidden');
+            
+            // Generate loading skeleton cards
+            loadingState.innerHTML = '';
+            for (let i = 0; i < 6; i++) {
+                const skeletonCard = document.createElement('div');
+                skeletonCard.className = 'bg-white rounded-xl shadow-md p-6 animate-pulse';
+                skeletonCard.innerHTML = `
+                    <div class="h-4 bg-slate-200 rounded w-3/4 mb-4 animate-pulse-shimmer"></div>
+                    <div class="h-3 bg-slate-200 rounded w-1/2 mb-6 animate-pulse-shimmer"></div>
+                    <div class="h-10 bg-slate-200 rounded-lg animate-pulse-shimmer"></div>
+                `;
+                loadingState.appendChild(skeletonCard);
+            }
+        }
+
+        function showFileGrid() {
+            initialState.classList.add('hidden');
+            loadingState.classList.add('hidden');
+            emptyState.classList.add('hidden');
+            fileGrid.classList.remove('hidden');
+        }
+
+        function showEmptyState() {
+            initialState.classList.add('hidden');
+            loadingState.classList.add('hidden');
+            fileGrid.classList.add('hidden');
+            emptyState.classList.remove('hidden');
+        }
+
+        // Fetch files from repository
+        async function fetchFiles() {
+            if (!currentRepoUrl) {
+                showToast('Please enter a valid GitHub repository URL', 'error');
+                return;
+            }
+
+            try {
+                setLoading(true);
+                showToast('Loading repository files...', 'loading');
+                
+                const response = await fetch(`${API}/files?repo_url=${encodeURIComponent(currentRepoUrl)}`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                files = data.files;
+                
+                hideToast();
+                
+                if (files.length > 0) {
+                    renderFiles();
+                    downloadAllBtn.disabled = false;
+                    showToast(`✅ Loaded ${files.length} files successfully!`);
+                } else {
+                    showEmptyState();
+                    downloadAllBtn.disabled = true;
+                    showToast('Repository is empty or no files found', 'error');
+                }
+            } catch (error) {
+                console.error('Error fetching files:', error);
+                hideToast();
+                showEmptyState();
+                downloadAllBtn.disabled = true;
+                showToast('❌ Error loading repository. Please check the URL and try again.', 'error');
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        // Render files in the grid
+        function renderFiles() {
+            fileGrid.innerHTML = '';
+            
+            files.forEach((file, index) => {
+                const fileCard = document.createElement('div');
+                fileCard.className = 'group bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 overflow-hidden animate-fade-in-stagger fade-in-ready';
+                fileCard.style.animationDelay = `${index * 100}ms`;
+                
+                const fileExtension = file.name.split('.').pop()?.toUpperCase() || 'FILE';
+                
+                fileCard.innerHTML = `
+                    <!-- Card header with file icon and name -->
+                    <div class="p-6 border-b border-slate-100">
+                        <div class="flex items-center mb-3">
+                            <!-- File type icon based on extension -->
+                            <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center mr-3 group-hover:scale-110 transition-transform duration-300">
+                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                            </div>
+                            
+                            <!-- File name with truncation -->
+                            <h3 class="font-semibold text-slate-800 group-hover:text-blue-600 transition-colors duration-300 truncate flex-1" title="${file.name}">
+                                ${file.name}
+                            </h3>
+                        </div>
+                        
+                        <!-- File extension badge -->
+                        <div class="flex justify-between items-center">
+                            <span class="px-2 py-1 bg-slate-100 text-slate-600 text-xs rounded-full font-medium">
+                                ${fileExtension}
+                            </span>
+                            
+                            <!-- Hover indicator -->
+                            <div class="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                <span class="text-xs text-blue-500 font-medium">Click to download →</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Download button with gradient and hover effects -->
+                    <div class="p-6">
+                        <button
+                            onclick="downloadFile('${file.download_url}', '${file.name}')"
+                            class="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-medium py-3 px-4 rounded-lg transition-all duration-300 transform hover:scale-105 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+                        >
+                            <span class="flex items-center justify-center">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                                Download File
+                            </span>
+                        </button>
+                    </div>
+                `;
+                
+                fileGrid.appendChild(fileCard);
+                
+                // Trigger animation
+                setTimeout(() => {
+                    fileCard.classList.remove('fade-in-ready');
+                }, 50);
+            });
+            
+            showFileGrid();
+        }
+
+        // Download individual file
+        function downloadFile(downloadUrl, filename) {
+            try {
+                showToast('Starting download...', 'loading');
+                
+                // Open download endpoint in new tab
+                window.open(
+                    `${API}/download?url=${encodeURIComponent(downloadUrl)}`,
+                    '_blank'
+                );
+                
+                // Show success toast after short delay
+                setTimeout(() => {
+                    hideToast();
+                    showToast(`✅ ${filename} download started!`);
+                }, 500);
+            } catch (error) {
+                hideToast();
+                showToast('❌ Download failed', 'error');
+            }
+        }
+
+        // Download all files as ZIP
+        async function downloadAllFiles() {
+            if (!currentRepoUrl) {
+                showToast('No repository loaded', 'error');
+                return;
+            }
+
+            try {
+                downloadingAll = true;
+                downloadAllBtn.disabled = true;
+                downloadAllText.textContent = 'Preparing ZIP...';
+                showToast('Preparing ZIP download...', 'loading');
+                
+                window.open(`${API}/download_all?repo_url=${encodeURIComponent(currentRepoUrl)}`, '_blank');
+                
+                setTimeout(() => {
+                    hideToast();
+                    showToast('✅ ZIP download started successfully!');
+                    downloadingAll = false;
+                    downloadAllBtn.disabled = false;
+                    downloadAllText.textContent = 'Download All Files';
+                }, 1000);
+            } catch (error) {
+                hideToast();
+                showToast('❌ ZIP download failed', 'error');
+                downloadingAll = false;
+                downloadAllBtn.disabled = false;
+                downloadAllText.textContent = 'Download All Files';
+            }
+        }
+
+        // Event listeners
+        loadRepoBtn.addEventListener('click', () => {
+            currentRepoUrl = repoUrlInput.value.trim();
+            fetchFiles();
+        });
+
+        downloadAllBtn.addEventListener('click', downloadAllFiles);
+
+        // Allow Enter key to load repository
+        repoUrlInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                currentRepoUrl = repoUrlInput.value.trim();
+                fetchFiles();
+            }
+        });
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', () => {
+            showInitialState();
+        });
+    </script>
+</body>
+</html>
