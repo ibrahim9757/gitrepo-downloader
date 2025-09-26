@@ -2,6 +2,8 @@
 
 A modern web application that allows you to browse, preview, and download files from any GitHub repository with a beautiful, responsive interface.
 
+![Image](https://github.com/user-attachments/assets/230f4603-02a9-42c0-8ad5-f94829309676)
+
 ## 🚀 Features
 
 - **Browser any GitHub repository** - Enter any GitHub repo URL to browse its files
