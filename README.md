@@ -219,6 +219,9 @@ zipfile36
    - Check if GitHub repository URL is valid and public
    - Verify backend is running and accessible
    - Check browser console for JavaScript errors
+## Notes
+- For best results, use your own GitHub Personal Access Token.
+- This allows downloading larger reports and avoids API limitations.
 
 ### Performance Tips
 
