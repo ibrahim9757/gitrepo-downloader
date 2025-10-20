@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <base target="_self">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GitHub Repository File Browser</title>
@@ -59,6 +60,39 @@
             }
         }
 
+        /* Modal animations */
+        @keyframes modal-fade-in {
+            from {
+                opacity: 0;
+                transform: scale(0.9) translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        @keyframes modal-fade-out {
+            from {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+            to {
+                opacity: 0;
+                transform: scale(0.9) translateY(-20px);
+            }
+        }
+
+        @keyframes backdrop-fade-in {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes backdrop-fade-out {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+
         /* Custom CSS classes for animations */
         .animate-fade-in {
             animation: fade-in 0.8s ease-out forwards;
@@ -76,6 +110,22 @@
 
         .animate-bounce-gentle {
             animation: bounce-gentle 2s infinite;
+        }
+
+        .animate-modal-fade-in {
+            animation: modal-fade-in 0.4s ease-out forwards;
+        }
+
+        .animate-modal-fade-out {
+            animation: modal-fade-out 0.4s ease-out forwards;
+        }
+
+        .animate-backdrop-fade-in {
+            animation: backdrop-fade-in 0.4s ease-out forwards;
+        }
+
+        .animate-backdrop-fade-out {
+            animation: backdrop-fade-out 0.4s ease-out forwards;
         }
 
         /* Animation delay utilities */
@@ -168,11 +218,56 @@
         .fade-in-ready {
             opacity: 0;
         }
+
+        /* Modal backdrop with frosted glass effect */
+        .modal-backdrop {
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(8px);
+        }
+
+        /* Modal card styling */
+        .modal-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
     </style>
 </head>
-<body>
-    <div class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
-        
+<body class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+    
+    <!-- Welcome Modal Overlay -->
+    <div id="welcomeModal" class="fixed inset-0 z-50 flex items-center justify-center modal-backdrop animate-backdrop-fade-in">
+        <div class="modal-card rounded-2xl p-8 max-w-md w-full mx-4 animate-modal-fade-in">
+            <!-- Welcome heading with emoji -->
+            <div class="text-center mb-6">
+                <h2 class="text-3xl font-bold text-slate-800 mb-2">Welcome 👋</h2>
+                <p class="text-slate-600">Enter your email to get started</p>
+            </div>
+            
+            <!-- Email input field -->
+            <div class="mb-6">
+                <input 
+                    type="email" 
+                    id="emailInput"
+                    placeholder="Enter your email address"
+                    class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-300 outline-none text-slate-700 placeholder-slate-400"
+                />
+                <p id="emailError" class="text-red-500 text-sm mt-2 hidden">Please enter a valid email address</p>
+            </div>
+            
+            <!-- Continue button -->
+            <button 
+                id="continueBtn"
+                class="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+            >
+                Continue
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Content (initially hidden) -->
+    <div id="mainContent" class="hidden">
         <!-- Header Section - Modern gradient background with glassmorphism effect -->
         <div class="relative overflow-hidden bg-gradient-to-br from-indigo-600 via-purple-600 to-blue-700">
             <!-- Animated background patterns -->
@@ -289,6 +384,11 @@
         let downloadingAll = false;
 
         // DOM elements
+        const welcomeModal = document.getElementById('welcomeModal');
+        const mainContent = document.getElementById('mainContent');
+        const emailInput = document.getElementById('emailInput');
+        const emailError = document.getElementById('emailError');
+        const continueBtn = document.getElementById('continueBtn');
         const repoUrlInput = document.getElementById('repoUrl');
         const loadRepoBtn = document.getElementById('loadRepoBtn');
         const downloadAllBtn = document.getElementById('downloadAllBtn');
@@ -320,6 +420,41 @@
             // Hide all existing toasts
             const toasts = document.querySelectorAll('.toastify');
             toasts.forEach(toast => toast.remove());
+        }
+
+        // Email validation
+        function isValidEmail(email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(email);
+        }
+
+        // Modal functions
+        function hideModal() {
+            // Add fade-out animations
+            welcomeModal.classList.remove('animate-backdrop-fade-in');
+            welcomeModal.classList.add('animate-backdrop-fade-out');
+            
+            const modalCard = welcomeModal.querySelector('.modal-card');
+            modalCard.classList.remove('animate-modal-fade-in');
+            modalCard.classList.add('animate-modal-fade-out');
+            
+            // Wait for animation to complete before hiding
+            setTimeout(() => {
+                welcomeModal.classList.add('hidden');
+                mainContent.classList.remove('hidden');
+                showInitialState();
+            }, 400);
+        }
+
+        function showModalError(message) {
+            emailError.textContent = message;
+            emailError.classList.remove('hidden');
+            emailInput.classList.add('border-red-500');
+        }
+
+        function hideModalError() {
+            emailError.classList.add('hidden');
+            emailInput.classList.remove('border-red-500');
         }
 
         // Set loading state
@@ -538,7 +673,35 @@
             }
         }
 
-        // Event listeners
+        // Event listeners for modal
+        continueBtn.addEventListener('click', () => {
+            const email = emailInput.value.trim();
+            
+            if (!email) {
+                showModalError('Please enter your email address');
+                return;
+            }
+            
+            if (!isValidEmail(email)) {
+                showModalError('Please enter a valid email address');
+                return;
+            }
+            
+            hideModalError();
+            hideModal();
+        });
+
+        emailInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                continueBtn.click();
+            }
+        });
+
+        emailInput.addEventListener('input', () => {
+            hideModalError();
+        });
+
+        // Event listeners for main functionality
         loadRepoBtn.addEventListener('click', () => {
             currentRepoUrl = repoUrlInput.value.trim();
             fetchFiles();
@@ -556,7 +719,14 @@
 
         // Initialize the application
         document.addEventListener('DOMContentLoaded', () => {
-            showInitialState();
+            // Show modal on page load
+            welcomeModal.classList.remove('hidden');
+            mainContent.classList.add('hidden');
+            
+            // Focus on email input
+            setTimeout(() => {
+                emailInput.focus();
+            }, 100);
         });
     </script>
 </body>
