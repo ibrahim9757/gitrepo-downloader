@@ -729,5 +729,24 @@
             }, 100);
         });
     </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/7.14.1-0/firebase.js"></script>
+    <script>
+        var firebaseConfig = {
+  apiKey: "ur key",
+  authDomain: "git-repo-downloader.firebaseapp.com",
+  databaseURL: "project",
+  projectId: "projectr",
+  storageBucket: "project.firebasestorage.app",
+  messagingSenderId: "id",
+  appId: "app id",
+  measurementId: "msg id"
+};
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        
+        // Make the Firestore service globally accessible for mail.js
+        window.db = firebase.firestore();
+    </script>
+    <script src="./mail.js"></script>
 </body>
 </html>
